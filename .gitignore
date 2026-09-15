@@ -1,2 +1,5 @@
 node_modules/
 .superpowers/
+output/
+state/
+.riftcodex_browser_profile/
