@@ -1,0 +1,22 @@
+{
+  "name": "tcg-index-sync",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "sync:riftbound": "tsx src/riftbound/sync.ts",
+    "sync:pokemon": "tsx src/pokemon/sync.ts",
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "playwright": "^1.63.0",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.5.1",
+    "vitest": "^5.0.0"
+  }
+}
