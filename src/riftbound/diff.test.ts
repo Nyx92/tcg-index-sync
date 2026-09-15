@@ -33,14 +33,23 @@ describe("diffRiftboundCards", () => {
   it("compares two cards that share the same riftbound_id independently, keyed on the unique id", () => {
     // Regression test for the live-data defect: 147 of 1451 live cards share
     // a riftbound_id with another row. Keying the dedup Map on riftbound_id
-    // would collapse these two into one Map entry and produce a false
-    // "changed" result for whichever card lost the collision.
+    // would collapse these two into one Map entry. The second card's data would
+    // overwrite the first when building the Map, causing the first card to be
+    // compared against the wrong previous record's updated_on, producing a false
+    // "changed" result.
+    //
+    // Test scenario: mongo-1 (with a newer timestamp) and mongo-2 (with an older
+    // timestamp) both share riftbound_id. Neither changed between snapshots, so
+    // the correct result is empty. With the buggy riftbound_id-keyed Map, mongo-2's
+    // record would overwrite mongo-1's in the Map, causing mongo-1 to be compared
+    // against mongo-2's older timestamp (2026-01-01). Since mongo-1's timestamp
+    // (2026-01-02) is greater, the buggy code would falsely report mongo-1 as changed.
     const previous = [
-      card({ id: "mongo-1", riftbound_id: "shared-id", updated_on: "2026-01-01" }),
+      card({ id: "mongo-1", riftbound_id: "shared-id", updated_on: "2026-01-02" }),
       card({ id: "mongo-2", riftbound_id: "shared-id", updated_on: "2026-01-01" }),
     ];
     const current = [
-      card({ id: "mongo-1", riftbound_id: "shared-id", updated_on: "2026-01-01" }),
+      card({ id: "mongo-1", riftbound_id: "shared-id", updated_on: "2026-01-02" }),
       card({ id: "mongo-2", riftbound_id: "shared-id", updated_on: "2026-01-01" }),
     ];
     expect(diffRiftboundCards(previous, current)).toEqual([]);
