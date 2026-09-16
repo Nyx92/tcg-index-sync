@@ -12,7 +12,9 @@ type FullRiftboundApiCard = RiftboundApiCard & {
   tcgplayer_id: string | null;
   name: string;
   set: { label: string; set_id: string };
-  classification: { rarity: string; type: string; supertype: string; domain: string[] };
+  // supertype is null for most cards (952/1451 in a live pull) — only
+  // Champion/Signature/Token/Basic cards carry a real value.
+  classification: { rarity: string; type: string; supertype: string | null; domain: string[] };
   collector_number: number;
   media: { image_url: string };
   attributes: { energy: number | null; might: number | null; power: number | null };
