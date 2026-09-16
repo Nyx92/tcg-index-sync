@@ -7,11 +7,35 @@
 
 import { join } from "path";
 
-export type LoadedCard = { card: any; localId: string };
+// The card shape lives here (not in mapToDelta.ts) so loadCardFile's return
+// type and mapPokemonCardToDelta's parameter type are provably the same
+// shape, rather than two independent definitions that could drift apart.
+export type PokemonSourceCard = {
+  name: { en: string };
+  rarity: string;
+  set: { id: string; name: { en: string }; serie: { id: string } };
+  dexId?: number[];
+  hp?: number;
+  types?: string[];
+  stage?: string;
+  thirdParty?: { tcgplayer?: number };
+};
+
+export type LoadedCard = { card: PokemonSourceCard; localId: string };
 
 export async function loadCardFile(repoPath: string, relativeFilePath: string): Promise<LoadedCard> {
   const absolutePath = join(repoPath, relativeFilePath);
   const mod = await import(absolutePath);
+  const card = mod.default;
+
+  // A card file that fails to build a usable default export (missing,
+  // undefined, or the wrong shape) should fail loudly and specifically here
+  // rather than crashing later inside mapPokemonCardToDelta with a
+  // confusing "Cannot read properties of undefined" stack trace.
+  if (!card || typeof card !== "object" || !("name" in card)) {
+    throw new Error(`Malformed card file: ${absolutePath} has no usable default export`);
+  }
+
   const localId = relativeFilePath.split("/").pop()!.replace(/\.ts$/, "");
-  return { card: mod.default, localId };
+  return { card: card as PokemonSourceCard, localId };
 }
