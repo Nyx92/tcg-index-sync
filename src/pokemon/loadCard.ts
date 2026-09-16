@@ -10,10 +10,17 @@ import { join } from "path";
 // The card shape lives here (not in mapToDelta.ts) so loadCardFile's return
 // type and mapPokemonCardToDelta's parameter type are provably the same
 // shape, rather than two independent definitions that could drift apart.
+// Name objects are locale-keyed and, for data-asia (Japanese-origin) files,
+// frequently have no `en` key at all — only regional locales like `ja`,
+// `zh-tw`, `id`, `zh-cn`, `th` (verified against a real file:
+// cards-database/data-asia/S/SC1D.ts's set name has no `en`/`ja`, only
+// `zh-tw`/`id`/`th`). mapToDelta's pickName() picks whichever is present.
+type LocalizedName = { en?: string; [locale: string]: string | undefined };
+
 export type PokemonSourceCard = {
-  name: { en: string };
+  name: LocalizedName;
   rarity: string;
-  set: { id: string; name: { en: string }; serie: { id: string } };
+  set: { id: string; name: LocalizedName; serie: { id: string } };
   dexId?: number[];
   hp?: number;
   types?: string[];
