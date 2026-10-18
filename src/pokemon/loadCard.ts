@@ -20,7 +20,10 @@ type LocalizedName = { en?: string; [locale: string]: string | undefined };
 export type PokemonSourceCard = {
   name: LocalizedName;
   rarity: string;
-  set: { id: string; name: LocalizedName; serie: { id: string } };
+  category?: string; // "Pokemon" | "Trainer" | "Energy"
+  // set.thirdParty.tcgplayer is the TCGPlayer *group* (set) id — used by
+  // tcgplayerMatch.ts to fill in card-level ids cards-database lacks.
+  set: { id: string; name: LocalizedName; serie: { id: string }; thirdParty?: { tcgplayer?: number } };
   dexId?: number[];
   hp?: number;
   types?: string[];
