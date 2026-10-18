@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mapPokemonCardToDelta } from "./mapToDelta";
+import { mapPokemonCardToDelta, printedNumber } from "./mapToDelta";
 import { fixtureCard } from "./__fixtures__/card";
 
 describe("mapPokemonCardToDelta", () => {
@@ -48,5 +48,30 @@ describe("mapPokemonCardToDelta", () => {
     const result = mapPokemonCardToDelta({ card: asiaCard, localId: "001" }, "Japanese");
     expect(result.name).toBe("飛天螳螂");
     expect(result.setNameEn).toBe("劍&盾");
+  });
+});
+
+describe("printedNumber", () => {
+  it("pads both numbers to 3 digits for Sword & Shield and later English sets", () => {
+    expect(printedNumber("1", 73, "swsh", "English")).toBe("001/073");
+    expect(printedNumber("74", 73, "swsh", "English")).toBe("074/073");
+    expect(printedNumber("207", 203, "swsh", "English")).toBe("207/203");
+    expect(printedNumber("12", 198, "sv", "English")).toBe("012/198");
+  });
+
+  it("does not pad older English sets", () => {
+    expect(printedNumber("2", 102, "base", "English")).toBe("2/102");
+    expect(printedNumber("051", 64, "neo", "English")).toBe("51/64");
+  });
+
+  it("pads Japanese cards to 3 digits", () => {
+    expect(printedNumber("054", 165, "SV", "Japanese")).toBe("054/165");
+    expect(printedNumber("75", 67, "S", "Japanese")).toBe("075/067");
+  });
+
+  it("keeps a number with letters, or one with no printed total, as-is", () => {
+    expect(printedNumber("TG01", 196, "swsh", "English")).toBe("TG01");
+    expect(printedNumber("SWSH001", undefined, "swsh", "English")).toBe("SWSH001");
+    expect(printedNumber("5", undefined, "base", "English")).toBe("5");
   });
 });

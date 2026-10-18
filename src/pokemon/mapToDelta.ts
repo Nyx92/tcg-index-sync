@@ -17,6 +17,27 @@ function pickName(name: Record<string, string | undefined>): string {
   return name.en ?? Object.values(name).find((v): v is string => v != null) ?? "";
 }
 
+// Series whose English cards print both numbers padded to 3 digits
+// ("001/073"). Older English series print them as-is ("2/102").
+const PADDED_SERIES = new Set(["swsh", "sv", "me"]);
+
+/**
+ * The card number as printed on the card, e.g. "001/073", "2/102", "054/165".
+ * Japanese cards always print 3 digits. A number with letters ("TG01",
+ * "SWSH001") or a set with no printed total keeps the number alone.
+ */
+export function printedNumber(
+  localId: string,
+  officialTotal: number | undefined,
+  serieId: string,
+  language: "English" | "Japanese"
+): string {
+  if (!/^\d+$/.test(localId) || !officialTotal) return localId;
+  const pad = language === "Japanese" || PADDED_SERIES.has(serieId);
+  const fmt = (n: string) => (pad ? n.padStart(3, "0") : String(Number(n)));
+  return `${fmt(localId)}/${fmt(String(officialTotal))}`;
+}
+
 export function mapPokemonCardToDelta(
   loaded: LoadedCard,
   language: "English" | "Japanese"
@@ -41,5 +62,6 @@ export function mapPokemonCardToDelta(
     types: card.types ?? [],
     stage: card.stage ?? null,
     localId,
+    printedNumber: printedNumber(localId, card.set.cardCount?.official, card.set.serie.id, language),
   };
 }

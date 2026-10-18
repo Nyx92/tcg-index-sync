@@ -131,6 +131,23 @@ Japanese catalog (category 85) lists each card's number, HP and type, so:
    ("M5: Abyss Eye" → "Abyss Eye"). The Japanese originals go to `nameJa` and
    `setNameJa`, so MXYYC shows English names for every language.
 
+#### Printed card number (`printedNumber`)
+
+Every delta card carries the number as printed on the card, which MXYYC shows
+next to the language chip:
+
+| Cards | Rule | Example |
+|---|---|---|
+| English, Sword & Shield / Scarlet & Violet / Mega Evolution | both padded to 3 digits | `001/073` |
+| English, older series | as-is | `2/102` |
+| Japanese | padded to 3 digits | `054/165` |
+| Number with letters, or set with no `cardCount.official` | number only | `TG01` |
+| Riftbound | number and total from `riftbound_id` | `002/219`, `309*/298` |
+
+Riftbound ids without a total (some promos, e.g. `ven-r01`) give `null`, and
+MXYYC shows `collectorNumber` instead. See `printedNumber()` in
+`src/pokemon/mapToDelta.ts` and `src/riftbound/mapToDelta.ts`.
+
 Only cards with a Japanese (`ja`) name are looked up. `data-asia/` also holds
 Chinese, Thai and Indonesian prints; TCGPlayer does not sell them, so they
 never get an id. (They are still labelled `"Japanese"` in the delta — a known

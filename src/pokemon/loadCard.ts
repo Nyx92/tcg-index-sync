@@ -23,7 +23,7 @@ export type PokemonSourceCard = {
   category?: string; // "Pokemon" | "Trainer" | "Energy"
   // set.thirdParty.tcgplayer is the TCGPlayer *group* (set) id — used by
   // tcgplayerMatch.ts to fill in card-level ids cards-database lacks.
-  set: { id: string; name: LocalizedName; serie: { id: string }; thirdParty?: { tcgplayer?: number } };
+  set: { id: string; name: LocalizedName; serie: { id: string }; cardCount?: { official?: number }; thirdParty?: { tcgplayer?: number } };
   dexId?: number[];
   hp?: number;
   types?: string[];

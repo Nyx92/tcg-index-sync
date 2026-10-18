@@ -20,6 +20,17 @@ type FullRiftboundApiCard = RiftboundApiCard & {
   attributes: { energy: number | null; might: number | null; power: number | null };
 };
 
+/**
+ * The card number as printed, from the riftbound_id: "unl-002-219" -> "002/219",
+ * "opp-007b-298" -> "007b/298"; a signature "309*" suffix is kept too. Ids without a
+ * total (some promos, e.g. "ven-r01") return null; the app then shows
+ * collectorNumber.
+ */
+export function printedNumber(riftboundId: string): string | null {
+  const m = /^[a-z0-9]+-(\d+[a-z*]*)-(\d+)$/.exec(riftboundId);
+  return m ? `${m[1]}/${m[2]}` : null;
+}
+
 export function mapRiftboundCardToDelta(card: FullRiftboundApiCard): CatalogDeltaCard {
   return {
     externalId: card.riftbound_id,
@@ -32,6 +43,7 @@ export function mapRiftboundCardToDelta(card: FullRiftboundApiCard): CatalogDelt
     type: card.classification.type,
     supertype: card.classification.supertype,
     collectorNumber: String(card.collector_number),
+    printedNumber: printedNumber(card.riftbound_id),
     domain: card.classification.domain,
     energy: card.attributes.energy,
     might: card.attributes.might,

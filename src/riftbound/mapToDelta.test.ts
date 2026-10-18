@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mapRiftboundCardToDelta } from "./mapToDelta";
+import { mapRiftboundCardToDelta, printedNumber } from "./mapToDelta";
 
 // NOTE: fixtures below use the real riftcodex.com API card shape, verified
 // against a live scrape (see task-3-report.md). The brief's illustrative
@@ -44,5 +44,18 @@ describe("mapRiftboundCardToDelta", () => {
       collector_number: 1, media: { image_url: "url" }, attributes: { energy: null, might: null, power: null },
     });
     expect(result.tcgPlayerId).toBeNull();
+  });
+});
+
+describe("printedNumber", () => {
+  it("reads the printed number and total from the riftbound_id", () => {
+    expect(printedNumber("unl-002-219")).toBe("002/219");
+    expect(printedNumber("opp-007b-298")).toBe("007b/298");
+    expect(printedNumber("ogn-309*-298")).toBe("309*/298");
+  });
+
+  it("returns null for an id without a total", () => {
+    expect(printedNumber("ven-r01")).toBeNull();
+    expect(printedNumber("ven-sp1-006")).toBeNull();
   });
 });
