@@ -200,18 +200,21 @@ It writes to whatever database `DATABASE_URL` in MXYYC-WEB's `.env` points to.
 
 ## Step 3 — Prices (automatic, MXYYC-WEB crons)
 
-After an import, no extra step is needed. Two cron endpoints in MXYYC-WEB
+After an import, no extra step is needed. Cron endpoints in MXYYC-WEB
 (scheduled on cron-job.org) handle prices for every catalog card that has a
-`tcgPlayerId`, whether or not anyone has listed it:
+`tcgPlayerId`, whether or not anyone has listed it. They run in short slices
+(cron-job.org closes requests after 30 s) within JustTCG's Starter plan
+(10,000 calls a month, 1,000 a day):
 
-| Job | Schedule | What it does | JustTCG cost |
-|---|---|---|---|
-| `GET /api/cron/backfill-prices?limit=500` | twice a month (more often while a backlog exists) | Fetches up to **one year of history** for cards not yet backfilled. Each card is done once (`priceBackfilledAt`). Listed cards go first. A card that fails 5 times leaves the queue (`priceBackfillAttempts`). | 1 call per card, ≤ 500 per run |
-| `GET /api/cron/refresh-prices` | daily | Saves **today's price** for every catalog card. | ~1 call per 100 cards, plus 1 per graded listing |
+| Job | Schedule | What it does |
+|---|---|---|
+| `/api/cron/refresh-prices` | every 30 min | **Today's price**: listed cards daily, every other catalog card weekly. |
+| `/api/cron/backfill-prices` | every hour | **Up to one year of history**, once per card, ~15 cards per call, listed cards first. Pauses when fewer than 2,000 monthly calls remain. |
+| `/api/cron/report-prices` | daily | Health report on Discord: progress, warnings, quota. |
 
-JustTCG allows **1,000 requests per day**. After a large import, the backfill
-needs about (new cards ÷ 500) runs. Run it daily until the summary on Discord
-shows `Remaining: 0`, then go back to twice a month.
+After a large import the backfill takes a while: at the Starter plan's pace,
+~7,000–8,000 cards a month (~4 months for the full ~32k catalog). See
+MXYYC-WEB's README, "Cron jobs (card pricing)", for details.
 
 ---
 
