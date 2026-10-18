@@ -181,7 +181,11 @@ challenge in the visible browser window, and run again.
 
 ## Step 2 — Import into MXYYC-WEB (Supabase)
 
-From the MXYYC-WEB repo:
+**Normal use:** run `pnpm update-catalog` in MXYYC-WEB. It runs both syncs
+here and imports the new delta files, so you do not need to switch repos.
+See "Update the catalog" in MXYYC-WEB's README.
+
+To import one file by hand, from the MXYYC-WEB repo:
 
 ```
 pnpm import:catalog-delta /home/buba/projects/tcg-index-sync/output/<delta-file>.json
@@ -241,11 +245,9 @@ All under `state/` (gitignored). Deleting a file resets that part to "first run"
 
 ## Common tasks
 
-**Routine update (new sets released):**
+**Routine update (new sets released):** in MXYYC-WEB, run
 ```
-pnpm sync:pokemon && pnpm sync:riftbound
-# in MXYYC-WEB, for each new delta file that has cards:
-pnpm import:catalog-delta <path-to-delta>.json
+pnpm update-catalog
 ```
 
 **Rebuild the full catalog from scratch** (e.g. the database was reset):
@@ -253,8 +255,8 @@ pnpm import:catalog-delta <path-to-delta>.json
 cp state/pokemon-last-commit.txt state/pokemon-last-commit.txt.bak-$(date +%Y%m%d)
 cp state/riftbound-snapshot.json state/riftbound-snapshot.json.bak-$(date +%Y%m%d)
 rm state/pokemon-last-commit.txt state/riftbound-snapshot.json
-pnpm sync:pokemon && pnpm sync:riftbound
-# then import both new delta files in MXYYC-WEB
+# then, in MXYYC-WEB:
+pnpm update-catalog
 ```
 
 **Retry an unmapped Japanese set now** instead of waiting 7 days: remove its
