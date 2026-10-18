@@ -125,6 +125,12 @@ Japanese catalog (category 85) lists each card's number, HP and type, so:
    - Trainer / Energy: same number, and the product is a Trainer / Energy card.
    - Same "single plain product" rule for stamped variants.
 
+3. **English names.** A matched card takes the TCGPlayer product name
+   without the number suffix as its `name` ("Tropius - 001/080" → "Tropius"),
+   and its set takes the group name without the code prefix as `setNameEn`
+   ("M5: Abyss Eye" → "Abyss Eye"). The Japanese originals go to `nameJa` and
+   `setNameJa`, so MXYYC shows English names for every language.
+
 Only cards with a Japanese (`ja`) name are looked up. `data-asia/` also holds
 Chinese, Thai and Indonesian prints; TCGPlayer does not sell them, so they
 never get an id. (They are still labelled `"Japanese"` in the delta — a known

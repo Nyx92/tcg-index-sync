@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { fingerprintSetToGroup, matchJapaneseProduct, toJpProducts, type JpProduct } from "./tcgplayerMatchJapan";
+import { englishCardName, englishSetName, fingerprintSetToGroup, matchJapaneseProduct, toJpProducts, type JpProduct } from "./tcgplayerMatchJapan";
 
 const p = (id: string, name: string, num: string, hp?: string, types: string[] = []): JpProduct => ({ id, name, num, hp, types });
 
@@ -75,5 +75,26 @@ describe("fingerprintSetToGroup", () => {
 
   it("returns null for a set with too few Pokémon to fingerprint", () => {
     expect(fingerprintSetToGroup([{ localId: "1", category: "Trainer" }], { g: [] })).toBeNull();
+  });
+});
+
+describe("English names from TCGPlayer", () => {
+  it.each([
+    ["Mega Darkrai ex - 046/081", "Mega Darkrai ex"],
+    ["Pikachu - 001/S-P", "Pikachu"],
+    ["Weavile -746/742", "Weavile"],
+    ["Tropius", "Tropius"],
+    ["Porygon-Z", "Porygon-Z"],
+    ["Rayquaza (Delta Species)", "Rayquaza (Delta Species)"],
+  ])("card %s → %s", (product, expected) => {
+    expect(englishCardName(product)).toBe(expected);
+  });
+
+  it.each([
+    ["M5: Abyss Eye", "Abyss Eye"],
+    ["SV2a: Pokemon Card 151", "Pokemon Card 151"],
+    ["Start Deck 100 Battle Collection", "Start Deck 100 Battle Collection"],
+  ])("set %s → %s", (group, expected) => {
+    expect(englishSetName(group)).toBe(expected);
   });
 });

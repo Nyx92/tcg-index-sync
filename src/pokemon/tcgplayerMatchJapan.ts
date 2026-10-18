@@ -112,10 +112,27 @@ export function buildSpeciesMap(repoPath: string): Record<number, string> {
 const UA = { headers: { "User-Agent": "tcg-index-sync/1.0 (catalog matcher)" } };
 const productCache = new Map<string, Promise<JpProduct[]>>();
 
-export async function fetchJpGroupIds(): Promise<string[]> {
+export async function fetchJpGroups(): Promise<{ id: string; name: string }[]> {
   const r = await fetch("https://tcgcsv.com/tcgplayer/85/groups", UA);
   if (!r.ok) throw new Error(`tcgcsv Japanese groups: HTTP ${r.status}`);
-  return ((await r.json()) as { results: { groupId: number }[] }).results.map((g) => String(g.groupId));
+  return ((await r.json()) as { results: { groupId: number; name: string }[] }).results.map((g) => ({
+    id: String(g.groupId),
+    name: g.name,
+  }));
+}
+
+// TCGPlayer lists Japanese products in English, so a matched card or set can
+// carry an English name next to its Japanese one.
+// "Mega Darkrai ex - 046/081" → "Mega Darkrai ex"; "Pikachu - 001/S-P" →
+// "Pikachu"; "Weavile -746/742" → "Weavile". Names like "Porygon-Z" or
+// "Rayquaza (Delta Species)" are kept as they are.
+export function englishCardName(productName: string): string {
+  return productName.replace(/\s*-\s*[A-Z]*\d+[A-Za-z]*(\/[A-Za-z0-9-]+)?\s*$/, "").trim();
+}
+
+// "M5: Abyss Eye" → "Abyss Eye"; "Start Deck 100 Battle Collection" stays.
+export function englishSetName(groupName: string): string {
+  return groupName.replace(/^[^:]{1,12}:\s*/, "").trim();
 }
 
 export function fetchJpGroupProducts(groupId: string): Promise<JpProduct[]> {

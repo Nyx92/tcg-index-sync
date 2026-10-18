@@ -28,6 +28,10 @@ export function mapPokemonCardToDelta(
     externalId: `${card.set.id}-${localId}`,
     tcgPlayerId,
     name: pickName(card.name),
+    // Japanese names kept separately so `name` / `setNameEn` can carry the
+    // English TCGPlayer names once a Japanese card is matched (see sync.ts).
+    nameJa: card.name.ja ?? null,
+    setNameJa: card.set.name.ja ?? null,
     language,
     imageUrl: `https://assets.tcgdex.net/en/${card.set.serie.id}/${card.set.id}/${localId}/high.webp`,
     setId: card.set.id,

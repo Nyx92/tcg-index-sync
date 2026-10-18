@@ -15,7 +15,9 @@ import { mapPokemonCardToDelta } from "./mapToDelta";
 import { fetchGroupProducts, matchTcgplayerProduct } from "./tcgplayerMatch";
 import {
   buildSpeciesMap,
-  fetchJpGroupIds,
+  fetchJpGroups,
+  englishCardName,
+  englishSetName,
   fetchJpGroupProducts,
   fingerprintSetToGroup,
   matchJapaneseProduct,
@@ -131,7 +133,10 @@ async function main() {
     // (`ja`) name are looked up, in TCGPlayer's "Pokemon Japan" category.
     const jpBySet = new Map<string, number[]>();
     cards.forEach((card, i) => {
-      if (card.tcgPlayerId == null && loadedCards[i].card.name.ja != null) {
+      // Every Japanese-language card: unmatched ones get an id, and every card
+      // in a matched set gets the English set name (and card name, if its id
+      // is in the set's product list).
+      if (loadedCards[i].card.name.ja != null) {
         const setId = loadedCards[i].card.set.id;
         jpBySet.set(setId, [...(jpBySet.get(setId) ?? []), i]);
       }
@@ -151,7 +156,7 @@ async function main() {
         );
         if (toFingerprint.length > 0) {
           const allGroups: Record<string, JpProduct[]> = {};
-          for (const gid of await fetchJpGroupIds()) allGroups[gid] = await fetchJpGroupProducts(gid);
+          for (const { id: gid } of await fetchJpGroups()) allGroups[gid] = await fetchJpGroupProducts(gid);
           for (const setId of toFingerprint) {
             const gid = fingerprintSetToGroup(jpBySet.get(setId)!.map(toJpCard), allGroups);
             if (gid) {
@@ -165,15 +170,28 @@ async function main() {
           writeFileAtomic(JAPAN_UNMAPPED_SETS_PATH, JSON.stringify(unmappedTried, null, 2));
         }
         const species = buildSpeciesMap(ABSOLUTE_REPO_PATH);
+        const groupNames = new Map((await fetchJpGroups()).map((g) => [g.id, g.name]));
         for (const [setId, indices] of jpBySet) {
           const gid = setGroups[setId];
           if (!gid) continue;
           const products = await fetchJpGroupProducts(gid);
+          const productName = new Map(products.map((p) => [p.id, p.name]));
+          const groupName = groupNames.get(gid);
           for (const i of indices) {
+            // English set name from the TCGPlayer group; Japanese kept in setNameJa.
+            if (groupName) cards[i].setNameEn = englishSetName(groupName);
+            const existingId = cards[i].tcgPlayerId;
+            if (existingId != null) {
+              const name = productName.get(existingId);
+              if (name) cards[i].name = englishCardName(name);
+              continue;
+            }
             const jpCard = toJpCard(i);
             const match = matchJapaneseProduct(jpCard, products, jpCard.dexId != null ? species[jpCard.dexId] : undefined);
             if (match && !usedIds.has(match)) {
               cards[i].tcgPlayerId = match;
+              // English card name from the matched product; Japanese kept in nameJa.
+              cards[i].name = englishCardName(productName.get(match) ?? cards[i].name);
               usedIds.add(match);
               jpFilled++;
             }
