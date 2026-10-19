@@ -262,6 +262,11 @@ All under `state/` (gitignored). Deleting a file resets that part to "first run"
 
 ## Common tasks
 
+> **Open TODO:** a skipped or failed import is not yet retried automatically —
+> see [docs/TODO-reliable-update-catalog.md](docs/TODO-reliable-update-catalog.md).
+> Until then: if `pnpm update-catalog` prints an import error, run the retry
+> command it prints before the next sync.
+
 **Routine update (new sets released):** in MXYYC-WEB, run
 ```
 pnpm update-catalog
