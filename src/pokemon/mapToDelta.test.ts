@@ -25,6 +25,11 @@ describe("mapPokemonCardToDelta", () => {
     }));
   });
 
+  it("builds the image URL under /ja/ for a Japanese card", () => {
+    const result = mapPokemonCardToDelta({ card: fixtureCard, localId: "39" }, "Japanese");
+    expect(result.imageUrl).toBe("https://assets.tcgdex.net/ja/ex/ex4/39/high.webp");
+  });
+
   it("maps to null tcgPlayerId when thirdParty.tcgplayer is absent", () => {
     const cardWithoutId = { ...fixtureCard, thirdParty: {} };
     const result = mapPokemonCardToDelta({ card: cardWithoutId, localId: "1" }, "English");

@@ -54,7 +54,8 @@ export function mapPokemonCardToDelta(
     nameJa: card.name.ja ?? null,
     setNameJa: card.set.name.ja ?? null,
     language,
-    imageUrl: `https://assets.tcgdex.net/en/${card.set.serie.id}/${card.set.id}/${localId}/high.webp`,
+    // tcgdex serves Japanese card images under /ja/ (the /en/ path 404s for them).
+    imageUrl: `https://assets.tcgdex.net/${language === "Japanese" ? "ja" : "en"}/${card.set.serie.id}/${card.set.id}/${localId}/high.webp`,
     setId: card.set.id,
     setNameEn: pickName(card.set.name),
     rarity: card.rarity,
