@@ -27,7 +27,7 @@ import {
 import type { CatalogDelta, CatalogDeltaCard } from "../types";
 import type { LoadedCard } from "./loadCard";
 import { isRetryEligible, planFiles, shouldEmit, shouldRetrySet } from "./unmatched";
-import { writeFileAtomic, withLock } from "../fsSafety";
+import { addPendingDelta, writeFileAtomic, withLock } from "../fsSafety";
 
 const REPO_PATH = "../cards-database"; // sibling clone, matching the identifier project's own layout
 // loadCardFile dynamically `import()`s the card file; a relative repoPath
@@ -51,6 +51,8 @@ const JAPAN_UNMAPPED_SETS_PATH = "state/japan-unmapped-sets.json";
 // Card files that could get a TCGPlayer id but didn't yet — retried every run
 // (see unmatched.ts).
 const UNMATCHED_PATH = "state/pokemon-unmatched.json";
+// Delta files not yet imported into MXYYC-WEB (see addPendingDelta).
+const PENDING_PATH = "state/pokemon-pending-deltas.txt";
 
 const readJson = <T>(path: string, fallback: T): T =>
   existsSync(path) ? (JSON.parse(readFileSync(path, "utf-8")) as T) : fallback;
@@ -217,6 +219,8 @@ async function main() {
     mkdirSync(OUTPUT_DIR, { recursive: true });
     const outputPath = `${OUTPUT_DIR}/pokemon-delta-${Date.now()}.json`;
     writeFileAtomic(outputPath, JSON.stringify(delta, null, 2));
+    // Before the state moves forward: a crash in between means a re-sync, not lost cards.
+    addPendingDelta(PENDING_PATH, outputPath, emitted.length);
     writeFileAtomic(STATE_PATH, headSha);
     writeFileAtomic(UNMATCHED_PATH, JSON.stringify(unmatched, null, 2));
 

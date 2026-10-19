@@ -8,8 +8,10 @@
 //  - withLock: a simple lock-file guard so two invocations of the same sync
 //    (e.g. a slow-running pass still in flight when a scheduled cron fires
 //    the next one) can't race on the same state/output files.
+//  - addPendingDelta: records a delta file that MXYYC-WEB has not imported
+//    yet (see "Pending deltas" in README.md).
 
-import { writeFileSync, renameSync, existsSync, readFileSync, unlinkSync } from "fs";
+import { appendFileSync, writeFileSync, renameSync, existsSync, readFileSync, unlinkSync } from "fs";
 
 export function writeFileAtomic(path: string, data: string): void {
   const tmpPath = `${path}.tmp`;
@@ -38,4 +40,11 @@ export async function withLock<T>(lockPath: string, fn: () => Promise<T>): Promi
       // Already gone (e.g. manually cleaned up mid-run) — nothing to do.
     }
   }
+}
+
+// One path per line. MXYYC-WEB's `pnpm update-catalog` imports each line and
+// then removes it, so a delta that is never imported stays here until it is.
+// A single short append is atomic, so a crash never leaves half a line.
+export function addPendingDelta(ledgerPath: string, deltaPath: string, cardCount: number): void {
+  if (cardCount > 0) appendFileSync(ledgerPath, `${deltaPath}\n`);
 }

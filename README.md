@@ -256,16 +256,18 @@ All under `state/` (gitignored). Deleting a file resets that part to "first run"
 | `japan-set-groups.json` | Pokémon sync | tcgdex Japanese set id → TCGPlayer group id (found by fingerprint). |
 | `japan-unmapped-sets.json` | Pokémon sync | Japanese sets with no group yet, and when each was last tried. |
 | `riftbound-snapshot.json` | Riftbound sync | Last full Riftbound pull. Delete it to make the next delta contain **all** cards. |
+| `pokemon-pending-deltas.txt`, `riftbound-pending-deltas.txt` | both syncs, MXYYC-WEB `pnpm update-catalog` | Delta files (one path per line) not yet imported. Each sync adds its delta before it moves its state forward; `update-catalog` removes a line only after that import succeeds. Do not delete it while it has lines — those cards would be skipped. |
 | `*.lock` | both | Present only while a sync runs. Delete it by hand if a run was killed. |
 
 ---
 
 ## Common tasks
 
-> **Open TODO:** a skipped or failed import is not yet retried automatically —
-> see [docs/TODO-reliable-update-catalog.md](docs/TODO-reliable-update-catalog.md).
-> Until then: if `pnpm update-catalog` prints an import error, run the retry
-> command it prints before the next sync.
+A failed, interrupted or skipped import is retried on the next
+`pnpm update-catalog`: every delta stays in `state/<game>-pending-deltas.txt`
+until it is imported. You can also run `pnpm sync:pokemon` or
+`pnpm sync:riftbound` here on its own; the next `update-catalog` imports
+those deltas too.
 
 **Routine update (new sets released):** in MXYYC-WEB, run
 ```

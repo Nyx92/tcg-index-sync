@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
-import { writeFileAtomic, withLock } from "./fsSafety";
+import { addPendingDelta, writeFileAtomic, withLock } from "./fsSafety";
 
 describe("writeFileAtomic", () => {
   let dir: string;
@@ -75,5 +75,26 @@ describe("withLock", () => {
     expect(exitSpy).toHaveBeenCalledWith(1);
 
     exitSpy.mockRestore();
+  });
+});
+
+describe("addPendingDelta", () => {
+  let dir: string;
+  beforeEach(() => {
+    dir = mkdtempSync(join(tmpdir(), "fssafety-pending-"));
+  });
+  afterEach(() => rmSync(dir, { recursive: true, force: true }));
+
+  it("appends deltas with cards, one path per line, oldest first", () => {
+    const ledger = join(dir, "pending.txt");
+    addPendingDelta(ledger, "output/a.json", 3);
+    addPendingDelta(ledger, "output/b.json", 1);
+    expect(readFileSync(ledger, "utf-8")).toBe("output/a.json\noutput/b.json\n");
+  });
+
+  it("skips a delta with 0 cards", () => {
+    const ledger = join(dir, "pending.txt");
+    addPendingDelta(ledger, "output/empty.json", 0);
+    expect(existsSync(ledger)).toBe(false);
   });
 });

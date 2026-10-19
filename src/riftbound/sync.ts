@@ -10,11 +10,13 @@ import { scrapeAllRiftboundCards } from "./scrape";
 import { diffRiftboundCards, type RiftboundApiCard } from "./diff";
 import { mapRiftboundCardToDelta } from "./mapToDelta";
 import type { CatalogDelta } from "../types";
-import { writeFileAtomic, withLock } from "../fsSafety";
+import { addPendingDelta, writeFileAtomic, withLock } from "../fsSafety";
 
 const SNAPSHOT_PATH = "state/riftbound-snapshot.json";
 const OUTPUT_DIR = "output";
 const LOCK_PATH = "state/riftbound.lock";
+// Delta files not yet imported into MXYYC-WEB (see addPendingDelta).
+const PENDING_PATH = "state/riftbound-pending-deltas.txt";
 
 async function main() {
   mkdirSync("state", { recursive: true });
@@ -36,6 +38,8 @@ async function main() {
     mkdirSync(OUTPUT_DIR, { recursive: true });
     const outputPath = `${OUTPUT_DIR}/riftbound-delta-${Date.now()}.json`;
     writeFileAtomic(outputPath, JSON.stringify(delta, null, 2));
+    // Before the snapshot moves forward: a crash in between means a re-sync, not lost cards.
+    addPendingDelta(PENDING_PATH, outputPath, delta.cards.length);
     writeFileAtomic(SNAPSHOT_PATH, JSON.stringify(current, null, 2));
 
     console.log(`Riftbound: ${current.length} total, ${changed.length} new/changed → ${outputPath}`);
